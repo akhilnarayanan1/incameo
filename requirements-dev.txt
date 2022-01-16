@@ -2,3 +2,4 @@ Django==3.2.11
 djangorestframework==3.13.1
 Faker==11.3.0
 python-dotenv==0.19.2
+user-agents==2.2.0
