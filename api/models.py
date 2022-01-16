@@ -22,6 +22,7 @@ class UserManager(BaseUserManager):
             email,
             password=password,
         )
+        user.is_verified = True
         user.is_admin = True
         user.save(using=self._db)
         return user
@@ -61,19 +62,23 @@ class User(AbstractBaseUser):
         blank=True,
         null=True,
     )
-    is_active = models.BooleanField(
-        default=True,
-        help_text='Check this option, instead of deleting the user.',
-    )
-    is_admin = models.BooleanField(default=False)
-    is_banned = models.BooleanField(
-        default=False,
-        help_text='Check if user is banned'
-    )
     is_verified = models.BooleanField(
         default=False,
-        help_text='Check if user is verified'
+        help_text='Designates whether this user is verified. Unselect this if user not verified.'
     )
+    is_banned = models.BooleanField(
+        default=False,
+        help_text='Designates whether this user should be treated as banned.'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.',
+    )
+    is_admin = models.BooleanField(
+        default=False,
+        help_text='Designates whether this user is an admin.',
+    )
+    date_joined = models.DateTimeField(auto_now_add=True)
 
     objects = UserManager()
 
