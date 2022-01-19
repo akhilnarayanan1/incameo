@@ -5,7 +5,29 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
-from api.models import User
+from api.models import User, AllVerifyOrForgotToken
+
+admin.site.site_header = "InCAMEO Admin"
+admin.site.site_title = "Admin Portal"
+admin.site.index_title = "Welcome to InCAMEO Admin Portal"
+
+
+class AllVerifyOrForgotTokenAdmin(admin.ModelAdmin):
+    readonly_fields = ('user', 'token', 'token_type', 'token_generated', 'token_expiry', 'ip', 'devicedetails')
+    list_display = ('user', 'token_type')
+    list_filter = ('token_type',)
+    fieldsets = (
+        ('User details', {'fields': ('user',)}),
+        ('Token details', {'fields': ('token', 'token_type', 'token_generated', 'token_expiry',)}),
+        ('Device details', {'fields': ('ip', 'devicedetails',)}),
+    )
+    search_fields = ('user',)
+    filter_horizontal = ()
+
+    def has_add_permission(self, request):
+        return False
+
+admin.site.register(AllVerifyOrForgotToken, AllVerifyOrForgotTokenAdmin)
 
 
 class UserCreationForm(forms.ModelForm):
@@ -49,19 +71,19 @@ class UserChangeForm(forms.ModelForm):
 
 class UserAdmin(BaseUserAdmin):
     # The forms to add and change user instances
-    readonly_fields = ('userid',)
+    readonly_fields = ('userid', 'last_login', 'date_joined', 'is_admin',)
     form = UserChangeForm
     add_form = UserCreationForm
 
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('email', 'is_verified', 'is_banned', 'is_active')
+    list_display = ('email', )
     list_filter = ('is_verified', 'is_banned', 'is_admin',)
     fieldsets = (
         (None, {'fields': ('userid', 'username', 'email', 'password')}),
         ('Personal info', {'fields': ('name', 'phone', 'date_of_birth',)}),
-        ('Account', {'fields': ('is_verified', 'is_banned', 'is_active',)}),
+        ('Account', {'fields': ('is_verified', 'is_banned', 'is_active', 'last_login', 'date_joined',)}),
         ('Permissions', {'fields': ('is_admin',)}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin

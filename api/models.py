@@ -3,6 +3,7 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 from uuid import uuid4
+from api.functions import expiry_time_5, expiry_time_60
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None):
@@ -97,3 +98,26 @@ class User(AbstractBaseUser):
     @property
     def is_staff(self):
         return self.is_admin
+
+
+class AllVerifyOrForgotToken(models.Model):
+    user = models.ForeignKey(
+        'User',
+        verbose_name='User',
+        on_delete=models.CASCADE
+    )
+    token = models.CharField(max_length=32, unique=True, blank=True, null=True)
+    token_type = models.CharField(max_length=10, choices=(('verify', 'Verify'), ('forgot', 'Forgot')), default='verify')
+    token_generated = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name="DateTime Generated"
+    )
+    token_expiry = models.DateTimeField(
+        default=expiry_time_60, 
+        verbose_name="DateTime Expiry"
+    )
+    ip = models.CharField(max_length=20)
+    devicedetails = models.TextField()
+
+    def __str__(self):
+        return str(self.token)
