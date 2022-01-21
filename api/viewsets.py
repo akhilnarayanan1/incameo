@@ -51,7 +51,7 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
   def perform_create(self, serializer):
     return create_or_verify(serializer, 'verify')
 
-class Forgotiewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class ForgotViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
   permission_classes = (AllowAny,)
   queryset = AllVerifyOrForgotToken.objects.all()
   serializer_class = VerifyOrForgotAccountSerializer
