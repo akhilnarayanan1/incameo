@@ -32,7 +32,7 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
 
   def retrieve(self, request, *args, **kwargs):
     response = super().retrieve(request, *args, **kwargs)
-    token = AllVerifyOrForgotToken.objects.get(token=kwargs['token'])
+    token = self.get_object()
     if token.token_type != 'verify':
       raise ValidationError({"detail": "Invalid Token"})
     if token.token_expiry < now() or token.is_used:
@@ -64,7 +64,7 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
 
   def retrieve(self, request, *args, **kwargs):
     response = super().retrieve(request, *args, **kwargs)
-    token = AllVerifyOrForgotToken.objects.get(token=kwargs['token'])
+    token = self.get_object()
     if token.token_type != 'forgot':
       raise ValidationError({"detail": "Invalid Token"})
     if token.token_expiry < now() or token.is_used:
