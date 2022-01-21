@@ -35,6 +35,11 @@ class User(AbstractBaseUser):
         default=uuid4,
         editable=False,
     )
+    account_type = models.CharField(
+        max_length=10, 
+        choices=(('business', 'Business'), ('influencer', 'Influencer')), 
+        default='influencer',
+    )
     name = models.CharField(
         verbose_name='Full Name',
         max_length=100,
@@ -106,8 +111,12 @@ class AllVerifyOrForgotToken(models.Model):
         verbose_name='User',
         on_delete=models.CASCADE
     )
-    token = models.CharField(max_length=32, unique=True, blank=True, null=True)
-    token_type = models.CharField(max_length=10, choices=(('verify', 'Verify'), ('forgot', 'Forgot')), default='verify')
+    token = models.CharField(max_length=32, unique=True,)
+    token_type = models.CharField(
+        max_length=10, 
+        choices=(('verify', 'Verify'), ('forgot', 'Forgot')), 
+        default='verify'
+    )
     token_generated = models.DateTimeField(
         auto_now_add=True, 
         verbose_name="DateTime Generated"
