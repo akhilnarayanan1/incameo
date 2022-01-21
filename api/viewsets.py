@@ -33,6 +33,8 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
   def retrieve(self, request, *args, **kwargs):
     response = super().retrieve(request, *args, **kwargs)
     token = AllVerifyOrForgotToken.objects.get(token=kwargs['token'])
+    if token.token_type != 'verify':
+      raise ValidationError({"detail": "Invalid Token"})
     if token.token_expiry < now() or token.is_used:
       raise ValidationError({"detail": "Token is expired or already used"})
     user = token.user
@@ -42,6 +44,8 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
       raise ValidationError({"detail": "User already verified"})
     user.is_verified = True
     user.save()
+    token.is_used = True
+    token.save()
     return Response({"detail": "Account verified succesfully"}, status=status.HTTP_200_OK)
 
   def create(self, request, *args, **kwargs):
@@ -61,11 +65,15 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
   def retrieve(self, request, *args, **kwargs):
     response = super().retrieve(request, *args, **kwargs)
     token = AllVerifyOrForgotToken.objects.get(token=kwargs['token'])
+    if token.token_type != 'forgot':
+      raise ValidationError({"detail": "Invalid Token"})
     if token.token_expiry < now() or token.is_used:
       raise ValidationError({"detail": "Token is expired or already used"})
     user = token.user
     if user.is_banned:
       raise ValidationError({"detail": "User is banned"})
+    token.is_used = True
+    token.save()
     return Response({"detail": "Token verified succesfully"}, status=status.HTTP_200_OK)
 
   def create(self, request, *args, **kwargs):
@@ -86,7 +94,8 @@ def create_or_verify(serializer, token_type):
     available_token = AllVerifyOrForgotToken.objects.get(
       user=user, 
       token_type=token_type, 
-      token_expiry__gt=now()
+      token_expiry__gt=now(),
+      is_used=False
     )
     raise APIException('Token already exists')
   except User.DoesNotExist:
