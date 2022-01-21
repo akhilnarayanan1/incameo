@@ -125,6 +125,10 @@ class AllVerifyOrForgotToken(models.Model):
         default=expiry_time_60, 
         verbose_name="DateTime Expiry"
     )
+    is_used = models.BooleanField(
+        default=False,
+        help_text='Designates whether this token is used.'
+    )
     ip = models.CharField(max_length=20)
     devicedetails = models.TextField()
 

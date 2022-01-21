@@ -13,12 +13,12 @@ admin.site.index_title = "Welcome to InCAMEO Admin Portal"
 
 
 class AllVerifyOrForgotTokenAdmin(admin.ModelAdmin):
-    readonly_fields = ('user', 'token', 'token_type', 'token_generated', 'token_expiry', 'ip', 'devicedetails')
+    readonly_fields = ('user', 'token', 'token_type', 'token_generated', 'token_expiry', 'is_used', 'ip', 'devicedetails')
     list_display = ('user', 'token_type')
     list_filter = ('token_type',)
     fieldsets = (
         ('User details', {'fields': ('user',)}),
-        ('Token details', {'fields': ('token', 'token_type', 'token_generated', 'token_expiry',)}),
+        ('Token details', {'fields': ('token', 'token_type', 'token_generated', 'token_expiry', 'is_used')}),
         ('Device details', {'fields': ('ip', 'devicedetails',)}),
     )
     search_fields = ('user',)
