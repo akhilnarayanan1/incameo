@@ -51,10 +51,22 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
   def perform_create(self, serializer):
     return create_or_verify(serializer, 'verify')
 
-class ForgotViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, 
+                    viewsets.GenericViewSet):
+  lookup_field = 'token'
   permission_classes = (AllowAny,)
   queryset = AllVerifyOrForgotToken.objects.all()
   serializer_class = VerifyOrForgotAccountSerializer
+
+  def retrieve(self, request, *args, **kwargs):
+    response = super().retrieve(request, *args, **kwargs)
+    token = AllVerifyOrForgotToken.objects.get(token=kwargs['token'])
+    if token.token_expiry < now():
+      raise ValidationError({"detail": "Token Expired"})
+    user = token.user
+    if user.is_banned:
+      raise ValidationError({"detail": "User is banned"})
+    return Response({"detail": "Token verified succesfully"}, status=status.HTTP_200_OK)
 
   def create(self, request, *args, **kwargs):
     response = super().create(request, *args, **kwargs)
