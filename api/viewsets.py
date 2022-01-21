@@ -43,12 +43,12 @@ class Forgotiewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
     return Response({"detail": "Token created successfully"}, status=status.HTTP_201_CREATED)
   
   def perform_create(self, serializer):
-    return create_or_verify(serializer, 'verify')
+    return create_or_verify(serializer, 'forgot')
     
 
 
 def create_or_verify(serializer, token_type):
-  if token_type != 'verify' or token_type != 'forgot':
+  if token_type != 'verify' and token_type != 'forgot':
     raise APIException('Invalid token type')
   user=serializer.validated_data['user']
   try:
