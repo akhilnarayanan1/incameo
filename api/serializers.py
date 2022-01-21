@@ -40,3 +40,12 @@ class VerifyOrForgotAccountSerializer(serializers.Serializer):
             **validated_data
         )
         return token
+
+
+class EditProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('name', 'username', 'email', 'password', 'date_of_birth', 'phone')
+        extra_kwargs = {
+            'password': {'write_only': True, 'style': {'input_type': 'password'}}
+        }

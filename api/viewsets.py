@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from api.functions import get_device_details, token_generator
 from api.models import AllVerifyOrForgotToken
 from api.permissions import IsOwnerAndAuthenticated
-from api.serializers import CreateAccountSerializer, VerifyOrForgotAccountSerializer
+from api.serializers import CreateAccountSerializer, VerifyOrForgotAccountSerializer, EditProfileSerializer
 from django.utils.timezone import now
 
 User = get_user_model()
@@ -102,3 +102,18 @@ def create_or_verify(serializer, token_type):
     raise APIException('User doesn\'t exist')
   except AllVerifyOrForgotToken.DoesNotExist:
     serializer.save(user=user, token_type=token_type)
+
+
+class EditProfileViewset(mixins.UpdateModelMixin, viewsets.GenericViewSet):
+  permission_classes = (IsOwnerAndAuthenticated,)
+  queryset = User.objects.all()
+  serializer_class = EditProfileSerializer
+
+  def partial_update(self, request, *args, **kwargs):
+    response = super().partial_update(request, *args, **kwargs)
+    password = request.data.get('password', None)
+    if password:
+      user = self.get_object()
+      user.set_password(password)
+      user.save()
+    return Response({"detail": "Profile updated successfully"}, status=status.HTTP_200_OK)
