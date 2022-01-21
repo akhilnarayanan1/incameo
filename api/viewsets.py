@@ -21,10 +21,28 @@ class CreateAccountViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
     return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
 
 
-class VerifyViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
-  permission_classes = (IsOwnerAndAuthenticated,)
+class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, 
+                    viewsets.GenericViewSet):
+  lookup_field = 'token'
   queryset = AllVerifyOrForgotToken.objects.all()
   serializer_class = VerifyOrForgotAccountSerializer
+
+  def get_permissions(self):
+    return [AllowAny()] if self.action == 'retrieve' else [IsOwnerAndAuthenticated()]
+
+  def retrieve(self, request, *args, **kwargs):
+    response = super().retrieve(request, *args, **kwargs)
+    token = AllVerifyOrForgotToken.objects.get(token=kwargs['token'])
+    if token.token_expiry < now():
+      raise ValidationError({"detail": "Token Expired"})
+    user = token.user
+    if user.is_banned:
+      raise ValidationError({"detail": "User is banned"})
+    if user.is_verified:
+      raise ValidationError({"detail": "User already verified"})
+    user.is_verified = True
+    user.save()
+    return Response({"detail": "Account verified succesfully"}, status=status.HTTP_200_OK)
 
   def create(self, request, *args, **kwargs):
     response = super().create(request, *args, **kwargs)
@@ -63,24 +81,3 @@ def create_or_verify(serializer, token_type):
     raise APIException('User doesn\'t exist')
   except AllVerifyOrForgotToken.DoesNotExist:
     serializer.save(user=user, token_type=token_type)
-
-
-# class VerifyViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
-#   permission_classes = (IsOwnerAndAuthenticated,)
-#   queryset = AllVerifyOrForgotToken.objects.all()
-#   serializer_class = VerifyOrForgotAccountSerializer
-
-#   def perform_create(self, serializer):
-#     user=serializer.validated_data['user']
-#     try:
-#       user = User.objects.get(email=user)
-#       available_token = AllVerifyOrForgotToken.objects.get(
-#         user=user, 
-#         token_type='verify', 
-#         token_expiry__gt=now()
-#       )
-#       raise APIException('Token already exists')
-#     except User.DoesNotExist:
-#       raise APIException('User doesn\'t exist')
-#     except AllVerifyOrForgotToken.DoesNotExist:
-#       serializer.save(user=user, token_type='verify')
