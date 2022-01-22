@@ -1,9 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import mixins, viewsets, permissions, status
-from rest_framework.exceptions import APIException, ValidationError, NotFound
+from rest_framework.exceptions import APIException
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from api.functions import get_device_details, token_generator
 from api.models import AllVerifyOrForgotToken
 from api.permissions import IsOwnerAndAuthenticated
 from api.serializers import CreateAccountSerializer, VerifyOrForgotAccountSerializer, EditProfileSerializer
@@ -34,14 +33,14 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
     response = super().retrieve(request, *args, **kwargs)
     token = self.get_object()
     if token.token_type != 'verify':
-      raise ValidationError({"detail": "Invalid Token"})
+      raise APIException('Invalid Token')
     if token.token_expiry < now() or token.is_used:
-      raise ValidationError({"detail": "Token is expired or already used"})
+      raise APIException('Token is expired or already used')
     user = token.user
     if user.is_banned:
-      raise ValidationError({"detail": "User is banned"})
+      raise APIException('User is banned')
     if user.is_verified:
-      raise ValidationError({"detail": "User already verified"})
+      raise APIException('User already verified')
     user.is_verified = True
     user.save()
     token.is_used = True
@@ -66,12 +65,12 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
     response = super().retrieve(request, *args, **kwargs)
     token = self.get_object()
     if token.token_type != 'forgot':
-      raise ValidationError({"detail": "Invalid Token"})
+      raise APIException('Invalid Token')
     if token.token_expiry < now() or token.is_used:
-      raise ValidationError({"detail": "Token is expired or already used"})
+      raise APIException('Token is expired or already used')
     user = token.user
     if user.is_banned:
-      raise ValidationError({"detail": "User is banned"})
+      raise APIException('User is banned')
     token.is_used = True
     token.save()
     return Response({"detail": "Token verified succesfully"}, status=status.HTTP_200_OK)
@@ -91,6 +90,8 @@ def create_or_verify(serializer, token_type):
   user=serializer.validated_data['user']
   try:
     user = User.objects.get(email=user)
+    if user.is_verified:
+      raise APIException('User already verified')
     available_token = AllVerifyOrForgotToken.objects.get(
       user=user, 
       token_type=token_type, 

@@ -7,10 +7,6 @@ from django.core.exceptions import ValidationError
 
 from api.models import User, AllVerifyOrForgotToken
 
-admin.site.site_header = "InCAMEO Admin"
-admin.site.site_title = "Admin Portal"
-admin.site.index_title = "Welcome to InCAMEO Admin Portal"
-
 
 class AllVerifyOrForgotTokenAdmin(admin.ModelAdmin):
     readonly_fields = ('user', 'token', 'token_type', 'token_generated', 'token_expiry', 'is_used', 'ip', 'devicedetails')

@@ -1,10 +1,7 @@
 from django.contrib.auth import get_user_model
 from api.functions import get_device_details, token_generator
 from api.models import AllVerifyOrForgotToken
-from rest_framework.exceptions import APIException
-from rest_framework import status, serializers
-from rest_framework.response import Response
-import requests
+from rest_framework import serializers
 
 User = get_user_model()
 
