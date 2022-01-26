@@ -3,6 +3,7 @@ from rest_framework import mixins, viewsets, permissions, status
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from api.functions import mask_email
 from api.models import AllVerifyOrForgotToken
 from api.permissions import IsOwnerAndAuthenticated
 from api.serializers import CreateAccountSerializer, VerifyOrForgotAccountSerializer, EditProfileSerializer
@@ -45,7 +46,10 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
     user.save()
     token.is_used = True
     token.save()
-    return Response({"detail": "Account verified succesfully"}, status=status.HTTP_200_OK)
+    return Response({"detail": {
+      "user": mask_email(user.email), 
+      "message": "Account verified succesfully"
+    }}, status=status.HTTP_200_OK)
 
   def create(self, request, *args, **kwargs):
     response = super().create(request, *args, **kwargs)
