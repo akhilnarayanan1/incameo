@@ -38,6 +38,13 @@ class VerifyOrForgotAccountSerializer(serializers.Serializer):
         )
         return token
 
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('password',)
+        extra_kwargs = {
+            'password': {'write_only': True, 'style': {'input_type': 'password'}}
+        }
 
 class EditProfileSerializer(serializers.ModelSerializer):
     class Meta:

@@ -6,7 +6,10 @@ from rest_framework.response import Response
 from api.functions import mask_email
 from api.models import AllVerifyOrForgotToken
 from api.permissions import IsOwnerAndAuthenticated
-from api.serializers import CreateAccountSerializer, VerifyOrForgotAccountSerializer, EditProfileSerializer
+from api.serializers import (
+  CreateAccountSerializer, VerifyOrForgotAccountSerializer, 
+  EditProfileSerializer, ChangePasswordSerializer
+)
 from django.utils.timezone import now
 
 User = get_user_model()
@@ -58,12 +61,17 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
   def perform_create(self, serializer):
     return create_or_verify(serializer, 'verify')
 
-class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, 
+class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
                     viewsets.GenericViewSet):
   lookup_field = 'token'
   permission_classes = (AllowAny,)
   queryset = AllVerifyOrForgotToken.objects.all()
-  serializer_class = VerifyOrForgotAccountSerializer
+
+  def get_serializer_class(self):
+    print("check this out", self.action)
+    if self.action == 'update':
+      return ChangePasswordSerializer
+    return VerifyOrForgotAccountSerializer
 
   def retrieve(self, request, *args, **kwargs):
     response = super().retrieve(request, *args, **kwargs)
@@ -77,7 +85,10 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
       raise APIException('User is banned')
     token.is_used = True
     token.save()
-    return Response({"detail": "Token verified succesfully"}, status=status.HTTP_200_OK)
+    return Response({"detail": {
+      "user": mask_email(user.email), 
+      "message": "Token verified succesfully"
+    }}, status=status.HTTP_200_OK)
 
   def create(self, request, *args, **kwargs):
     response = super().create(request, *args, **kwargs)
@@ -85,7 +96,19 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
   
   def perform_create(self, serializer):
     return create_or_verify(serializer, 'forgot')
-    
+
+  def update(self, request, *args, **kwargs):
+    response = super().update(request, *args, **kwargs)
+    return Response({"detail": {
+      "user": mask_email(self.get_object().user.email), 
+      "message": "Password changed succesfully"
+    }}, status=status.HTTP_200_OK)
+
+  def perform_update(self, serializer):
+    user = self.get_object().user
+    user.set_password(serializer.validated_data['password'])
+    user.save()
+    serializer.save()
 
 
 def create_or_verify(serializer, token_type):
