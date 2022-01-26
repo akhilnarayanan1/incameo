@@ -3,3 +3,5 @@ djangorestframework==3.13.1
 Faker==11.3.0
 python-dotenv==0.19.2
 user-agents==2.2.0
+djangorestframework-simplejwt==4.4.0
+PyJWT==1.7.1

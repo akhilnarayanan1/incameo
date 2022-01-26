@@ -2,8 +2,15 @@ from django.contrib.auth import get_user_model
 from api.functions import get_device_details, token_generator
 from api.models import AllVerifyOrForgotToken
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super(CustomTokenObtainPairSerializer, self).validate(attrs)
+        data.update({'id': self.user.userid})
+        return data
 
 class CreateAccountSerializer(serializers.ModelSerializer):
     class Meta:

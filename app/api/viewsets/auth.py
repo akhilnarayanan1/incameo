@@ -8,11 +8,15 @@ from api.models import AllVerifyOrForgotToken
 from api.permissions import IsOwnerAndAuthenticated
 from api.serializers import (
   CreateAccountSerializer, VerifyOrForgotAccountSerializer, 
-  EditProfileSerializer, ChangePasswordSerializer
+  EditProfileSerializer, ChangePasswordSerializer, CustomTokenObtainPairSerializer
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.utils.timezone import now
 
 User = get_user_model()
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+  serializer_class = CustomTokenObtainPairSerializer
 
 class CreateAccountViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
   permission_classes = (AllowAny,)
