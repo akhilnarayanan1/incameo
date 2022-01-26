@@ -90,7 +90,7 @@ def create_or_verify(serializer, token_type):
   user=serializer.validated_data['user']
   try:
     user = User.objects.get(email=user)
-    if user.is_verified:
+    if token_type == 'verify' and user.is_verified:
       raise APIException('User already verified')
     available_token = AllVerifyOrForgotToken.objects.get(
       user=user, 
