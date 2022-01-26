@@ -15,3 +15,6 @@ def expiry_time_5():
 
 def expiry_time_60():
     return now() + timedelta(minutes=60)
+
+def mask_email(email):
+    return email.split('@')[0][0]+ '**********' + email.split('@')[0][-1] + '@' + email.split('@')[1]
