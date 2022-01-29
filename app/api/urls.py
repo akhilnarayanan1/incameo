@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from api.viewsets import (
     CreateAccountViewset, VerifyViewset, 
-    ForgotViewset, EditProfileViewset, CustomTokenObtainPairView
+    ForgotViewset, EditProfileViewset, CustomTokenObtainPairView, ProcessInstagramCodeViewset
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -15,6 +15,7 @@ router.register('signup', CreateAccountViewset, basename='auth_signup')
 router.register('account/verify', VerifyViewset, basename='auth_verify')
 router.register('account/forgot', ForgotViewset, basename='auth_forgot')
 router.register('editprofile', EditProfileViewset, basename='auth_editprofile')
+router.register('instagram-verify', ProcessInstagramCodeViewset, basename='auth_instagram')
 
 urlpatterns = [
     path('', include(router.urls)),
