@@ -72,7 +72,6 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.U
   queryset = AllVerifyOrForgotToken.objects.all()
 
   def get_serializer_class(self):
-    print("check this out", self.action)
     if self.action == 'update':
       return ChangePasswordSerializer
     return VerifyOrForgotAccountSerializer
