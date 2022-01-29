@@ -86,8 +86,6 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.U
     user = token.user
     if user.is_banned:
       raise APIException('User is banned')
-    token.is_used = True
-    token.save()
     return Response({"detail": {
       "user": mask_email(user.email), 
       "message": "Token verified succesfully"
@@ -102,6 +100,9 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.U
 
   def update(self, request, *args, **kwargs):
     response = super().update(request, *args, **kwargs)
+    token = self.get_object()
+    token.is_used = True
+    token.save()
     return Response({"detail": {
       "user": mask_email(self.get_object().user.email), 
       "message": "Password changed succesfully"
