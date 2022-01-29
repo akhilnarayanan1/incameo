@@ -4,17 +4,10 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from api.serializers import CreateAccountSerializer
+from api.secrets import *
 import requests
 import json
-from pathlib import Path
-import dotenv
 import os
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-dotenv_file = os.path.join(BASE_DIR, ".env")
-if os.path.isfile(dotenv_file):
-    dotenv.load_dotenv(dotenv_file)
 
 User = get_user_model()
 
