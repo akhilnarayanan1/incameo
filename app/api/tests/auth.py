@@ -11,7 +11,7 @@ from api.models import AllVerifyOrForgotToken
 User = get_user_model()
 fake = Faker()
 
-class AuthenticatioTests(APITestCase):
+class AuthenticationTests(APITestCase):
     def setUp(self):
         self.email = fake.email()
         self.password = fake.password()
