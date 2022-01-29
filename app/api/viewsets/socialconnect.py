@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from api.permissions import IsOwnerAndAuthenticated
 from api.models import SocialConnect
 from api.serializers import CreateAccountSerializer, SocialConnectSerializer
+from django.utils.timezone import now, timedelta
 import requests
 import json
 import os
@@ -37,12 +38,31 @@ class ProcessInstagramCodeViewset(mixins.RetrieveModelMixin, mixins.UpdateModelM
 
     access_token = short_lived_resp.json().get('access_token', None)
     if access_token is None:
-        return Response({"details": "Unable to get access_token"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"details": short_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
     
     long_lived_resp = requests.get(f'https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret={os.environ["client_secret"]}&access_token={access_token}', verify=False)
-    user_details_resp = requests.get(f'https://graph.instagram.com/v12.0/me?fields=account_type,id,media_count,username&access_token={long_lived_resp.json().get("access_token", None)}', verify=False)
+
+    access_token = long_lived_resp.json().get('access_token', None)
+    if access_token is None:
+         return Response({"details": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
+
+    user_details_resp = requests.get(f'https://graph.instagram.com/v12.0/me?fields=account_type,id,media_count,username&access_token={access_token}', verify=False)
     response = user_details_resp
-    
+
+    obj, created = SocialConnect.objects.update_or_create(
+        user=request.user,
+        social_userid = user_details_resp.json().get('id', None),
+        defaults={'social_expiry_date': now()}
+    )
+
+    obj.social_account_type = user_details_resp.json().get('account_type', None)
+    obj.social_media_count = user_details_resp.json().get('media_count', 0)
+    obj.social_username = user_details_resp.json().get('username', None)
+    obj.social_access_token = access_token
+    obj.social_expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
+    obj.social_token_type = long_lived_resp.json().get('token_type', None)
+    obj.save()
+
     return Response(response.json(), status=status.HTTP_200_OK)
         
 
