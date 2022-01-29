@@ -2,19 +2,22 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
-from api.serializers import CreateAccountSerializer
+from api.permissions import IsOwnerAndAuthenticated
+from api.models import SocialConnect
+from api.serializers import CreateAccountSerializer, SocialConnectSerializer
 import requests
 import json
 import os
 
 User = get_user_model()
 
-class ProcessInstagramCodeViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, 
-    mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
-  permission_classes = (AllowAny,)
-  queryset = User.objects.all() 
-  serializer_class = CreateAccountSerializer 
+class ProcessInstagramCodeViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, 
+    mixins.ListModelMixin, viewsets.GenericViewSet):
+  permission_classes = (IsOwnerAndAuthenticated,)
+  queryset = SocialConnect.objects.all() 
+  serializer_class = SocialConnectSerializer 
 
   def list(self, request, *args, **kwargs):
     response = super().list(self, request, *args, **kwargs)
@@ -38,3 +41,4 @@ class ProcessInstagramCodeViewset(mixins.CreateModelMixin, mixins.RetrieveModelM
         return Response(response.json(), status=status.HTTP_200_OK)
     else:
         return Response({"details": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST)
+
