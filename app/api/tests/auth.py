@@ -48,7 +48,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(AllVerifyOrForgotToken.objects.filter(user=User.objects.get(email=data['email']), 
             token_type='verify').count(), 1)
 
-    def test_verification_token(self):
+    def test_create_verification_token(self):
         """
         Test verification token API should throw 401
         if user not loggedin, 201 if user recognized
@@ -63,7 +63,7 @@ class AuthenticationTests(APITestCase):
         response3 = self.client.post('/api/account/verify/', data, format='json')
         self.assertEqual(response3.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def test_forgot_token(self):
+    def test_create_forgot_token(self):
         """
         Test forgot token API should throw 500
         if user not present(no login needed), 201 if user recognized
@@ -77,3 +77,26 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(response1.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response3.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def test_validate_token(self):
+        """
+        Test verification and forgot token API should throw 404
+        if token not present, 200 if token recognized
+        """
+        data = {'email': fake.email(), 'password': fake.password()}
+        response1 = self.client.post('/api/signup/', data, format='json')
+        response2 = self.client.post('/api/account/forgot/', {'user': data['email']}, format='json')
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+        
+        token_obj1 = AllVerifyOrForgotToken.objects.filter(user=User.objects.get(email=data['email']), token_type='verify').first()
+        token_obj2 = AllVerifyOrForgotToken.objects.filter(user=User.objects.get(email=data['email']), token_type='forgot').first()
+        
+        response3 = self.client.get(f'/api/account/verify/{token_obj1.token}/', format='json')
+        response4 = self.client.get(f'/api/account/verify/{fake.pystr(min_chars=32, max_chars=32)}/', format='json')
+        self.assertEqual(response3.status_code, status.HTTP_200_OK)
+        self.assertEqual(response4.status_code, status.HTTP_404_NOT_FOUND)
+        
+        response5 = self.client.get(f'/api/account/forgot/{token_obj2.token}/', format='json')
+        response6 = self.client.get(f'/api/account/forgot/{fake.pystr(min_chars=32, max_chars=32)}/', format='json')
+        self.assertEqual(response5.status_code, status.HTTP_200_OK)
+        self.assertEqual(response6.status_code, status.HTTP_404_NOT_FOUND)
