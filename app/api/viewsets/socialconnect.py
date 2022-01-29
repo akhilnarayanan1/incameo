@@ -4,7 +4,6 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from api.serializers import CreateAccountSerializer
-from api.secrets import *
 import requests
 import json
 import os
