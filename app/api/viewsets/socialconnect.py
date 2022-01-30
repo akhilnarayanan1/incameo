@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from api.permissions import IsOwnerAndAuthenticated
-from api.models import InstagramAccount
-from api.serializers import CreateAccountSerializer, InstagramConnectSerializer
+from api.models import InstagramAccount, FacebookAccount
+from api.serializers import CreateAccountSerializer, InstagramConnectSerializer, FacebookConnectSerializer
 from django.utils.timezone import now, timedelta
 import requests
 import json
@@ -56,9 +56,9 @@ class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
         verify=False)
         response = user_details_resp
 
-        obj, created = SocialConnect.objects.update_or_create(
+        obj, created = InstagramAccount.objects.update_or_create(
             user=request.user,
-            userid = user_details_resp.json().get('id', None),
+            id = user_details_resp.json().get('id', None),
             defaults={'expiry_date': now()}
         )
 
@@ -75,8 +75,8 @@ class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
 class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, 
     mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsOwnerAndAuthenticated,)
-    queryset = InstagramAccount.objects.all() 
-    serializer_class = InstagramConnectSerializer 
+    queryset = FacebookAccount.objects.all() 
+    serializer_class = FacebookConnectSerializer 
 
     def list(self, request, *args, **kwargs):
         response = super().list(self, request, *args, **kwargs)
@@ -95,9 +95,41 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
         if access_token is None:
             return Response({"details": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
+        verify_permissions = requests.get(f"https://graph.facebook.com/v12.0/me/permissions?"
+            f"access_token={access_token}"
+        , verify=False)
+
+        for permission in verify_permissions.json().get('data', None):
+            if ((permission['permission'] == 'email' or permission['permission'] == 'read_insights' or 
+                permission['permission'] == 'pages_show_list' or permission['permission'] == 'instagram_basic' or
+                permission['permission'] == 'instagram_manage_insights' or 
+                permission['permission'] == 'pages_read_engagement' or permission['permission'] == 'public_profile') 
+                and (permission['status'] == 'declined')):
+                return Response({"details": permission['permission']+ " permissions missing"}, 
+                status=status.HTTP_400_BAD_REQUEST)
+
         accounts_list_resp = requests.get(f"https://graph.facebook.com/v12.0/me/accounts?"
             f"access_token={access_token}", verify=False)
         
+        account_list = accounts_list_resp.json().get('data', None)
+
+        if account_list is None:
+            return Response({"details": accounts_list_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
+
         response = accounts_list_resp
+
+        for account in account_list:
+            obj, created = FacebookAccount.objects.update_or_create(
+                user=request.user,
+                id = account.get('id', None),
+                defaults={'expiry_date': now()}
+            )
+            obj.name = account.get('name', None)
+            obj.token_type = long_lived_resp.json().get('token_type', None)
+            obj.category = account.get('category', None)
+            obj.access_token = account.get('access_token', None)
+            obj.expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
+            obj.save()
+
         return Response(response.json(), status=status.HTTP_200_OK)
 
