@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from api.models import SocialConnect
+from api.models import InstagramAccount
 
-class SocialConnectSerializer(serializers.ModelSerializer):
+class InstagramConnectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SocialConnect
+        model = InstagramAccount
         fields = '__all__'
