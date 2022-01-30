@@ -40,13 +40,18 @@ class InstagramSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateMode
         if access_token is None:
             return Response({"details": short_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
-        long_lived_resp = requests.get(f'https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret={os.environ["client_secret"]}&access_token={access_token}', verify=False)
+        long_lived_resp = requests.get(f'''
+            https://graph.instagram.com/access_token?grant_type=ig_exchange_token&
+            client_secret={os.environ["client_secret"]}&access_token={access_token}'''
+        , verify=False)
 
         access_token = long_lived_resp.json().get('access_token', None)
         if access_token is None:
             return Response({"details": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
-        user_details_resp = requests.get(f'https://graph.instagram.com/v12.0/me?fields=account_type,id,media_count,username&access_token={access_token}', verify=False)
+        user_details_resp = requests.get(f'''https://graph.instagram.com/v12.0/me?
+            fields=account_type,id,media_count,username&access_token={access_token}'''
+        , verify=False)
         response = user_details_resp
 
         obj, created = SocialConnect.objects.update_or_create(
@@ -78,7 +83,11 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
         if code is None:
             return Response({"details": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        response = requests.get(f'https://graph.facebook.com/v12.0/oauth/access_token?client_id={os.environ["fb_client_id"]}&redirect_uri={request.build_absolute_uri("/")[:-1]+"/api/facebook-verify/"}&client_secret={os.environ["fb_client_secret"]}&code={code}', verify=False)
+        response = requests.get(f'''https://graph.facebook.com/v12.0/oauth/access_token?
+            client_id={os.environ["fb_client_id"]}&
+            redirect_uri={request.build_absolute_uri("/")[:-1]+"/api/facebook-verify/"}&
+            client_secret={os.environ["fb_client_secret"]}&code={code}''',
+        verify=False)
 
         return Response(response.json(), status=status.HTTP_200_OK)
 
