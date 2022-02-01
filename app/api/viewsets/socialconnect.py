@@ -70,7 +70,7 @@ class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
         obj.token_type = long_lived_resp.json().get('token_type', None)
         obj.save()
 
-        return Response({"details": response.json()}, status=status.HTTP_200_OK)
+        return Response({"details": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
         
 class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, 
     mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -136,5 +136,5 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
                 obj.expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
                 obj.save()
 
-        return Response(response.json(), status=status.HTTP_200_OK)
+        return Response({"details": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
 
