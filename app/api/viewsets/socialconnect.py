@@ -108,9 +108,10 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
                 return Response({"details": permission['permission']+ " permissions missing"}, 
                 status=status.HTTP_400_BAD_REQUEST)
 
-        accounts_list_resp = requests.get(f"https://graph.facebook.com/v12.0/me/accounts?"
+        accounts_list_resp = requests.get(f"https://graph.facebook.com/v12.0/me/accounts?"+
+            "fields=instagram_business_account{username,ig_id},access_token,name,category&"+
             f"access_token={access_token}", verify=False)
-        
+
         account_list = accounts_list_resp.json().get('data', None)
 
         if account_list is None:
@@ -119,17 +120,21 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
         response = accounts_list_resp
 
         for account in account_list:
-            obj, created = FacebookAccount.objects.update_or_create(
-                user=request.user,
-                id = account.get('id', None),
-                defaults={'expiry_date': now()}
-            )
-            obj.name = account.get('name', None)
-            obj.token_type = long_lived_resp.json().get('token_type', None)
-            obj.category = account.get('category', None)
-            obj.access_token = account.get('access_token', None)
-            obj.expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
-            obj.save()
+            if "instagram_business_account" in account:
+                obj, created = FacebookAccount.objects.update_or_create(
+                    user=request.user,
+                    id = account.get('id', None),
+                    defaults={'expiry_date': now()}
+                )
+                obj.name = account.get('name', None)
+                obj.business_id = account['instagram_business_account'].get('id', None)
+                obj.ig_id = account['instagram_business_account'].get('ig_id', None)
+                obj.username = account['instagram_business_account'].get('username', None)
+                obj.token_type = long_lived_resp.json().get('token_type', None)
+                obj.category = account.get('category', None)
+                obj.access_token = account.get('access_token', None)
+                obj.expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
+                obj.save()
 
         return Response(response.json(), status=status.HTTP_200_OK)
 
