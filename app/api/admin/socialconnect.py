@@ -7,7 +7,7 @@ class InstagramAccountAdmin(admin.ModelAdmin):
     list_display = ('user',)
     list_filter = ('user',)
     fieldsets = (
-        ('User details', {'fields': ('id', 'account_type', 'media_count', 'username', 'user',)}),
+        ('User details', {'fields': ('id', 'account_type', 'media_count', 'username', 'user', 'facebook_linked',)}),
         ('Token details', {'fields': ('access_token', 'token_type', 'expiry_date',)}),
     )
     search_fields = ('user',)

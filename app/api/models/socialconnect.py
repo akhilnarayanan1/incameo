@@ -14,9 +14,16 @@ class InstagramAccount(models.Model):
     access_token = models.TextField()
     expiry_date = models.DateTimeField()
     token_type = models.CharField(max_length=10)
+    facebook_linked = models.OneToOneField(
+        'FacebookAccount',
+        verbose_name='Facebook Account',
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
-        return str(self.user)
+        return str(self.username)
 
 
 class FacebookAccount(models.Model):
@@ -36,4 +43,4 @@ class FacebookAccount(models.Model):
     token_type = models.CharField(max_length=10)
 
     def __str__(self):
-        return str(self.user)
+        return str(self.username)
