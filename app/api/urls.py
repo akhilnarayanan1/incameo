@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from api.viewsets import (
     CreateAccountViewset, VerifyViewset, 
     ForgotViewset, EditProfileViewset, CustomTokenObtainPairView, InstagramConnectViewset,
-    FacebookSocialConnectViewset
+    FacebookSocialConnectViewset, InstagramFacebookMapViewset, ListMetricsViewset
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -18,6 +18,8 @@ router.register('account/forgot', ForgotViewset, basename='auth_forgot')
 router.register('editprofile', EditProfileViewset, basename='auth_editprofile')
 router.register('instagram-verify', InstagramConnectViewset, basename='auth_instagram')
 router.register('facebook-verify', FacebookSocialConnectViewset, basename='auth_facebook')
+router.register('instagram-facebook-map', InstagramFacebookMapViewset, basename='map_insta_fb')
+router.register('metrics', ListMetricsViewset, basename='metric_insta')
 
 urlpatterns = [
     path('', include(router.urls)),
