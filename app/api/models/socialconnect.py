@@ -21,7 +21,10 @@ class InstagramAccount(models.Model):
 
 class FacebookAccount(models.Model):
     id = models.CharField(max_length=100, primary_key=True)
+    business_id = models.CharField(max_length=100)
+    ig_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
+    username = models.CharField(max_length=100)
     user = models.ForeignKey(
         'User',
         verbose_name='User',

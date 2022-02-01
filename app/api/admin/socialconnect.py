@@ -20,11 +20,12 @@ admin.site.register(InstagramAccount, InstagramAccountAdmin)
 
 
 class FacebookAccountAdmin(admin.ModelAdmin):
-    readonly_fields = ('id', 'name', 'user', 'category', 'access_token', 'token_type', 'expiry_date',)
+    readonly_fields = ('id', 'business_id', 'ig_id', 'name', 'user', 'category', 
+        'username', 'access_token', 'token_type', 'expiry_date',)
     list_display = ('user',)
     list_filter = ('user',)
     fieldsets = (
-        ('User details', {'fields': ('id', 'name', 'category', 'user',)}),
+        ('User details', {'fields': ('id', 'business_id', 'ig_id', 'name', 'username', 'category', 'user',)}),
         ('Token details', {'fields': ('access_token', 'token_type', 'expiry_date',)}),
     )
     search_fields = ('user',)
