@@ -6,7 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from api.permissions import IsOwnerAndAuthenticated
 from api.models import InstagramAccount, FacebookAccount
-from api.serializers import CreateAccountSerializer, InstagramConnectSerializer, FacebookConnectSerializer
+from api.serializers import (
+    CreateAccountSerializer, InstagramConnectSerializer, 
+    FacebookConnectSerializer, InstagramFacebookMapSerializer
+)
 from django.utils.timezone import now, timedelta
 import requests
 import json
@@ -137,4 +140,10 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
                 obj.save()
 
         return Response({"details": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
+
+
+class InstagramFacebookMapViewset(mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    permission_classes = (IsOwnerAndAuthenticated,)
+    queryset = InstagramAccount.objects.all() 
+    serializer_class = InstagramFacebookMapSerializer 
 

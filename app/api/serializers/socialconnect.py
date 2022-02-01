@@ -10,3 +10,8 @@ class FacebookConnectSerializer(serializers.ModelSerializer):
     class Meta:
         model = FacebookAccount
         fields = '__all__'
+
+class InstagramFacebookMapSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InstagramAccount
+        fields = ('facebook_linked',)
