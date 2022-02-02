@@ -37,36 +37,34 @@ class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
             "code": code
         }
         short_lived_resp = requests.post('https://api.instagram.com/oauth/access_token', data=data)
-        response = short_lived_resp
 
-        access_token = short_lived_resp.json().get('access_token', None)
-        if access_token is None:
+        if short_lived_resp.status_code != status.HTTP_200_OK:
             return Response({"message": short_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
         long_lived_resp = requests.get(f"https://graph.instagram.com/access_token?"
             f"grant_type=ig_exchange_token&"
             f"client_secret={os.environ['client_secret']}&"
-            f"access_token={access_token}")
+            f"access_token={short_lived_resp.json().get('access_token', None)}")
 
-        access_token = long_lived_resp.json().get('access_token', None)
-        if access_token is None:
+        if long_lived_resp.status_code != status.HTTP_200_OK:
             return Response({"message": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
         user_details_resp = requests.get(f"https://graph.instagram.com/v12.0/me?"
             f"fields=account_type,id,media_count,username&"
-            f"access_token={access_token}")
-        response = user_details_resp
+            f"access_token={long_lived_resp.json().get('access_token', None)}")
+
+        if user_details_resp.status_code != status.HTTP_200_OK:
+            return Response({"message": user_details_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
         obj, created = InstagramAccount.objects.update_or_create(
-            user=request.user,
             id = user_details_resp.json().get('id', None),
             defaults={'expiry_date': now()}
         )
-
+        obj.user = request.user
         obj.account_type = user_details_resp.json().get('account_type', None)
         obj.media_count = user_details_resp.json().get('media_count', 0)
         obj.username = user_details_resp.json().get('username', None)
-        obj.access_token = access_token
+        obj.access_token = long_lived_resp.json().get('access_token', None)
         obj.expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
         obj.token_type = long_lived_resp.json().get('token_type', None)
         obj.save()
