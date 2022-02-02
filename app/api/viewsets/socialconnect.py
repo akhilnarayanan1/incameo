@@ -80,7 +80,6 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
     def list(self, request, *args, **kwargs):
         response = super().list(self, request, *args, **kwargs)
         code = request.GET.get('code', None)
-
         if code is None:
             return Response({"message": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -90,12 +89,11 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
             f"client_secret={os.environ['fb_client_secret']}&"
             f"code={code}")
 
-        access_token = long_lived_resp.json().get('access_token', None)
-        if access_token is None:
+        if long_lived_resp.status_code != status.HTTP_200_OK:
             return Response({"message": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
         verify_permissions = requests.get(f"https://graph.facebook.com/v12.0/me/permissions?"
-            f"access_token={access_token}")
+            f"access_token={long_lived_resp.json().get('access_token', None)}")
 
         for permission in verify_permissions.json().get('data', None):
             if ((permission['permission'] == 'email' or permission['permission'] == 'read_insights' or 
@@ -108,7 +106,7 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
 
         accounts_list_resp = requests.get(f"https://graph.facebook.com/v12.0/me/accounts?"+
             "fields=instagram_business_account{username,ig_id},access_token,name,category&"+
-            f"access_token={access_token}")
+            f"access_token={long_lived_resp.json().get('access_token', None)}")
 
         account_list = accounts_list_resp.json().get('data', None)
 
@@ -120,10 +118,10 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
         for account in account_list:
             if "instagram_business_account" in account:
                 obj, created = FacebookAccount.objects.update_or_create(
-                    user=request.user,
                     id = account.get('id', None),
                     defaults={'expiry_date': now()}
                 )
+                obj.user = request.user
                 obj.name = account.get('name', None)
                 obj.business_id = account['instagram_business_account'].get('id', None)
                 obj.ig_id = account['instagram_business_account'].get('ig_id', None)
