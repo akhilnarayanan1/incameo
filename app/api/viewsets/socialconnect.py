@@ -27,7 +27,7 @@ class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
         response = super().list(self, request, *args, **kwargs)
         code = request.GET.get('code', None)
         if  code is None:
-            return Response({"details": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST)
             
         data = {
             "client_id": os.environ["client_id"],
@@ -36,27 +36,25 @@ class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
             "redirect_uri": request.build_absolute_uri('/')[:-1]+"/api/instagram-verify/",
             "code": code
         }
-        short_lived_resp = requests.post('https://api.instagram.com/oauth/access_token', data=data, verify=False)
+        short_lived_resp = requests.post('https://api.instagram.com/oauth/access_token', data=data)
         response = short_lived_resp
 
         access_token = short_lived_resp.json().get('access_token', None)
         if access_token is None:
-            return Response({"details": short_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": short_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
         long_lived_resp = requests.get(f"https://graph.instagram.com/access_token?"
             f"grant_type=ig_exchange_token&"
             f"client_secret={os.environ['client_secret']}&"
-            f"access_token={access_token}"
-        , verify=False)
+            f"access_token={access_token}")
 
         access_token = long_lived_resp.json().get('access_token', None)
         if access_token is None:
-            return Response({"details": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
         user_details_resp = requests.get(f"https://graph.instagram.com/v12.0/me?"
             f"fields=account_type,id,media_count,username&"
-            f"access_token={access_token}", 
-        verify=False)
+            f"access_token={access_token}")
         response = user_details_resp
 
         obj, created = InstagramAccount.objects.update_or_create(
@@ -73,7 +71,7 @@ class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
         obj.token_type = long_lived_resp.json().get('token_type', None)
         obj.save()
 
-        return Response({"details": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
+        return Response({"message": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
         
 class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, 
     mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -86,21 +84,20 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
         code = request.GET.get('code', None)
 
         if code is None:
-            return Response({"details": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         long_lived_resp = requests.get(f"https://graph.facebook.com/v12.0/oauth/access_token?"
             f"client_id={os.environ['fb_client_id']}&"
             f"redirect_uri={request.build_absolute_uri('/')[:-1]}/api/facebook-verify/&"
             f"client_secret={os.environ['fb_client_secret']}&"
-            f"code={code}", 
-        verify=False)
+            f"code={code}")
+
         access_token = long_lived_resp.json().get('access_token', None)
         if access_token is None:
-            return Response({"details": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
         verify_permissions = requests.get(f"https://graph.facebook.com/v12.0/me/permissions?"
-            f"access_token={access_token}"
-        , verify=False)
+            f"access_token={access_token}")
 
         for permission in verify_permissions.json().get('data', None):
             if ((permission['permission'] == 'email' or permission['permission'] == 'read_insights' or 
@@ -108,17 +105,17 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
                 permission['permission'] == 'instagram_manage_insights' or 
                 permission['permission'] == 'pages_read_engagement' or permission['permission'] == 'public_profile') 
                 and (permission['status'] == 'declined')):
-                return Response({"details": permission['permission']+ " permissions missing"}, 
+                return Response({"message": permission['permission']+ " permissions missing"}, 
                 status=status.HTTP_400_BAD_REQUEST)
 
         accounts_list_resp = requests.get(f"https://graph.facebook.com/v12.0/me/accounts?"+
             "fields=instagram_business_account{username,ig_id},access_token,name,category&"+
-            f"access_token={access_token}", verify=False)
+            f"access_token={access_token}")
 
         account_list = accounts_list_resp.json().get('data', None)
 
         if account_list is None:
-            return Response({"details": accounts_list_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": accounts_list_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
         response = accounts_list_resp
 
@@ -139,7 +136,7 @@ class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModel
                 obj.expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
                 obj.save()
 
-        return Response({"details": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
+        return Response({"message": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
 
 
 class InstagramFacebookMapViewset(mixins.UpdateModelMixin, viewsets.GenericViewSet):
