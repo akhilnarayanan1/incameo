@@ -17,8 +17,7 @@ import os
 
 User = get_user_model()
 
-class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, 
-    mixins.ListModelMixin, viewsets.GenericViewSet):
+class InstagramConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsOwnerAndAuthenticated,)
     queryset = InstagramAccount.objects.all() 
     serializer_class = InstagramConnectSerializer 
@@ -71,8 +70,7 @@ class InstagramConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin
 
         return Response({"message": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
         
-class FacebookSocialConnectViewset(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, 
-    mixins.ListModelMixin, viewsets.GenericViewSet):
+class FacebookSocialConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsOwnerAndAuthenticated,)
     queryset = FacebookAccount.objects.all() 
     serializer_class = FacebookConnectSerializer 
