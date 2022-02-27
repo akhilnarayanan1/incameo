@@ -130,5 +130,7 @@ dmypy.json
 
 # Bootstrap
 bootstrap-*/
+#Jquery
+jquery-*/
 
 migrations/
