@@ -1,5 +1,3 @@
-# incameo-django
+docker build . -f .docker/api/Dockerfile -t incameo-api:dev
 
-Setup Bootstrap and Jquery
-static/bootstrap-X.X.X
-static/jquery-X.X.X
+docker-compose up
