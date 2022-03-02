@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  api:
+    container_name: incameo-api
+    command: >
+      sh -c "
+      python app/manage.py makemigrations &&
+      python app/manage.py migrate &&
+      python app/manage.py runserver 0.0.0.0:8000"
+    build: 
+      context: .
+      dockerfile: .docker/api/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api-service:/incameo/django-api
+    working_dir: /incameo/django-api
+    env_file:
+      - .env-api
+    depends_on:
+      - db
+
+  db:
+    container_name: incameo-db
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    volumes:
+      - postgresdb:/var/lib/postgresql/data
+    env_file:
+      - .env-postgres
+
+volumes:
+  postgresdb:
