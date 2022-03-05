@@ -1,11 +1,27 @@
 version: "3.9"
 
 services:
+  web:
+    container_name: incameo-web
+    command: >
+      sh -c "
+      npm run dev"
+    build: 
+      context: .
+      dockerfile: .docker/web/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web-service:/incameo/vue-web
+      - /incameo/vue-web/app/node_modules/
+    working_dir: /incameo/vue-web/app
+    depends_on:
+      - api
+
   api:
     container_name: incameo-api
     command: >
       sh -c "
-      python app/manage.py makemigrations &&
       python app/manage.py migrate &&
       python app/manage.py runserver 0.0.0.0:8000"
     build: 
