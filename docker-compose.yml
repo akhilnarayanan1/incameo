@@ -31,6 +31,7 @@ services:
       - "8000:8000"
     volumes:
       - ./api-service:/incameo/django-api
+      - venv:/incameo/django-api/venv
     working_dir: /incameo/django-api
     env_file:
       - .env
@@ -51,3 +52,4 @@ services:
 volumes:
   # postgresdb:
   node_modules:
+  venv:

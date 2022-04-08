@@ -12,4 +12,10 @@ COPY api-service/requirements.txt requirements.txt
 
 COPY api-service/app app/.
 
+RUN pip install virtualenv
+
+RUN virtualenv venv
+
+RUN source venv/bin/activate
+
 RUN pip install -r requirements.txt
