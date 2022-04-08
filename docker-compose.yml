@@ -13,7 +13,7 @@ services:
       - "3000:3000"
     volumes:
       - ./web-service:/incameo/vue-web
-      - /incameo/vue-web/app/node_modules/
+      - node_modules:/incameo/vue-web/app/node_modules/
     working_dir: /incameo/vue-web/app
     depends_on:
       - api
@@ -33,20 +33,21 @@ services:
       - ./api-service:/incameo/django-api
     working_dir: /incameo/django-api
     env_file:
-      - .env-api
-    depends_on:
-      - db
+      - .env
+    # depends_on:
+    #   - db
 
-  db:
-    container_name: incameo-db
-    image: postgres:14-alpine
-    environment:
-      POSTGRES_HOST: db
-      POSTGRES_PORT: 5432
-    volumes:
-      - postgresdb:/var/lib/postgresql/data
-    env_file:
-      - .env-postgres
+  # db:
+  #   container_name: incameo-db
+  #   image: postgres:14-alpine
+  #   environment:
+  #     POSTGRES_HOST: db
+  #     POSTGRES_PORT: 5432
+  #   volumes:
+  #     - postgresdb:/var/lib/postgresql/data
+  #   env_file:
+  #     - .env
 
 volumes:
-  postgresdb:
+  # postgresdb:
+  node_modules:
