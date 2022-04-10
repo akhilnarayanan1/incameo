@@ -4,18 +4,10 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apk update && apk upgrade
 
-RUN mkdir -p /incameo/django-api/app
+WORKDIR /incameo/django-api/app
 
-WORKDIR /incameo/django-api
+COPY api-service/requirements.txt ../requirements.txt
 
-COPY api-service/requirements.txt requirements.txt
+COPY api-service/app .
 
-COPY api-service/app app/.
-
-RUN pip install virtualenv
-
-RUN virtualenv venv
-
-RUN source venv/bin/activate
-
-RUN pip install -r requirements.txt
+RUN pip install -r ../requirements.txt
