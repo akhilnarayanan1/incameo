@@ -3,26 +3,24 @@ version: "3.9"
 services:
   web:
     container_name: incameo-web
-    command: >
-      sh -c "
-      npm run dev"
     build: 
       context: .
       dockerfile: .docker/web/Dockerfile
+    environment:
+      NODE_ENV: development
     image: incameo-web:dev
     ports:
       - "3000:3000"
     volumes:
-      - ./web-service:/incameo/vue-web
+      - "./web-service/app:/incameo/nuxt-web/app"
+      - node_modules:/incameo/nuxt-web/app/node_modules
+    env_file:
+      - .env
     depends_on:
       - api
 
   api:
     container_name: incameo-api
-    command: >
-      sh -c "
-      python manage.py migrate &&
-      python manage.py runserver 0.0.0.0:8000"
     build: 
       context: .
       dockerfile: .docker/api/Dockerfile
@@ -30,6 +28,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./api-service:/incameo/django-api
+      - ./api-service/app:/incameo/django-api/app
     env_file:
       - .env
+
+volumes:
+  node_modules:
