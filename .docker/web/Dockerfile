@@ -2,7 +2,7 @@ FROM node:17.6-alpine
 
 RUN apk update && apk upgrade
 
-WORKDIR /incameo/vue-web/app
+WORKDIR /incameo/nuxt-web/app
 
 COPY web-service/app .
 
