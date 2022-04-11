@@ -6,8 +6,6 @@ services:
     build: 
       context: .
       dockerfile: .docker/web/Dockerfile
-    environment:
-      NODE_ENV: development
     image: incameo-web:dev
     ports:
       - "3000:3000"
