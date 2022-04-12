@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-# from .secrets import *
+from .secrets import *
 from django.utils.timezone import timedelta
 import os
 
