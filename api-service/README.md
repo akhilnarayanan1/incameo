@@ -1,5 +1,7 @@
 # incameo-django
 
-Setup Bootstrap and Jquery
-static/bootstrap-X.X.X
-static/jquery-X.X.X
+For prod:
+Remove from api-service/app/incameo/settings.py
+from .secrets import *
+'sslserver',
+and secrets.py
