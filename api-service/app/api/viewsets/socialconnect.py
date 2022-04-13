@@ -60,15 +60,16 @@ class InstagramConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         obj, created = InstagramAccount.objects.update_or_create(
             id = user_details_resp.json().get('id', None),
-            defaults={'expiry_date': now()}
+            defaults={
+                'expiry_date': now() + timedelta(seconds=long_lived_resp.json().get('expires_in', 0)),
+                'user': request.user,
+                'account_type': user_details_resp.json().get('account_type', None),
+                'media_count': user_details_resp.json().get('media_count', 0),
+                'username': user_details_resp.json().get('username', None),
+                'access_token': long_lived_resp.json().get('access_token', None),
+                'token_type': long_lived_resp.json().get('token_type', None)
+            }
         )
-        obj.user = request.user
-        obj.account_type = user_details_resp.json().get('account_type', None)
-        obj.media_count = user_details_resp.json().get('media_count', 0)
-        obj.username = user_details_resp.json().get('username', None)
-        obj.access_token = long_lived_resp.json().get('access_token', None)
-        obj.expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
-        obj.token_type = long_lived_resp.json().get('token_type', None)
         obj.save()
 
         return Response({"message": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
@@ -120,17 +121,18 @@ class FacebookSocialConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSe
             if "instagram_business_account" in account:
                 obj, created = FacebookAccount.objects.update_or_create(
                     id = account.get('id', None),
-                    defaults={'expiry_date': now()}
+                    defaults={
+                        'expiry_date': now()+timedelta(seconds=long_lived_resp.json().get('expires_in', 0)),
+                        'user': request.user,
+                        'name': account.get('name', None),
+                        'business_id': account['instagram_business_account'].get('id', None),
+                        'ig_id': account['instagram_business_account'].get('ig_id', None),
+                        'username': account['instagram_business_account'].get('username', None),
+                        'token_type': long_lived_resp.json().get('token_type', None),
+                        'category': account.get('category', None),
+                        'access_token': account.get('access_token', None)
+                    }
                 )
-                obj.user = request.user
-                obj.name = account.get('name', None)
-                obj.business_id = account['instagram_business_account'].get('id', None)
-                obj.ig_id = account['instagram_business_account'].get('ig_id', None)
-                obj.username = account['instagram_business_account'].get('username', None)
-                obj.token_type = long_lived_resp.json().get('token_type', None)
-                obj.category = account.get('category', None)
-                obj.access_token = account.get('access_token', None)
-                obj.expiry_date += timedelta(seconds=long_lived_resp.json().get('expires_in', 0))
                 obj.save()
 
         return Response({"message": "Account(s) added succesfully"}, status=status.HTTP_200_OK)
