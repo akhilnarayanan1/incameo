@@ -17,6 +17,9 @@ import os
 
 User = get_user_model()
 
+verify_ssl = False
+fb_version = 'v12.0'
+
 class InstagramConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsOwnerAndAuthenticated,)
     queryset = InstagramAccount.objects.all() 
@@ -35,7 +38,7 @@ class InstagramConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
             "redirect_uri": request.build_absolute_uri('/')[:-1]+"/api/instagram-verify/",
             "code": code
         }
-        short_lived_resp = requests.post('https://api.instagram.com/oauth/access_token', data=data)
+        short_lived_resp = requests.post('https://api.instagram.com/oauth/access_token', data=data, verify=verify_ssl)
 
         if short_lived_resp.status_code != status.HTTP_200_OK:
             return Response({"message": short_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
@@ -43,14 +46,14 @@ class InstagramConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
         long_lived_resp = requests.get(f"https://graph.instagram.com/access_token?"
             f"grant_type=ig_exchange_token&"
             f"client_secret={os.environ['client_secret']}&"
-            f"access_token={short_lived_resp.json().get('access_token', None)}")
+            f"access_token={short_lived_resp.json().get('access_token', None)}", verify=verify_ssl)
 
         if long_lived_resp.status_code != status.HTTP_200_OK:
             return Response({"message": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
-        user_details_resp = requests.get(f"https://graph.instagram.com/v12.0/me?"
+        user_details_resp = requests.get(f"https://graph.instagram.com/{fb_version}/me?"
             f"fields=account_type,id,media_count,username&"
-            f"access_token={long_lived_resp.json().get('access_token', None)}")
+            f"access_token={long_lived_resp.json().get('access_token', None)}", verify=verify_ssl)
 
         if user_details_resp.status_code != status.HTTP_200_OK:
             return Response({"message": user_details_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
@@ -81,17 +84,17 @@ class FacebookSocialConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSe
         if code is None:
             return Response({"message": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        long_lived_resp = requests.get(f"https://graph.facebook.com/v12.0/oauth/access_token?"
+        long_lived_resp = requests.get(f"https://graph.facebook.com/{fb_version}/oauth/access_token?"
             f"client_id={os.environ['fb_client_id']}&"
             f"redirect_uri={request.build_absolute_uri('/')[:-1]}/api/facebook-verify/&"
             f"client_secret={os.environ['fb_client_secret']}&"
-            f"code={code}")
+            f"code={code}", verify=verify_ssl)
 
         if long_lived_resp.status_code != status.HTTP_200_OK:
             return Response({"message": long_lived_resp.json()}, status=status.HTTP_400_BAD_REQUEST)
 
-        verify_permissions = requests.get(f"https://graph.facebook.com/v12.0/me/permissions?"
-            f"access_token={long_lived_resp.json().get('access_token', None)}")
+        verify_permissions = requests.get(f"https://graph.facebook.com/{fb_version}/me/permissions?"
+            f"access_token={long_lived_resp.json().get('access_token', None)}", verify=verify_ssl)
 
         for permission in verify_permissions.json().get('data', None):
             if ((permission['permission'] == 'email' or permission['permission'] == 'read_insights' or 
@@ -102,9 +105,9 @@ class FacebookSocialConnectViewset(mixins.ListModelMixin, viewsets.GenericViewSe
                 return Response({"message": permission['permission']+ " permissions missing"}, 
                 status=status.HTTP_400_BAD_REQUEST)
 
-        accounts_list_resp = requests.get(f"https://graph.facebook.com/v12.0/me/accounts?"+
+        accounts_list_resp = requests.get(f"https://graph.facebook.com/{fb_version}/me/accounts?"+
             "fields=instagram_business_account{username,ig_id},access_token,name,category&"+
-            f"access_token={long_lived_resp.json().get('access_token', None)}")
+            f"access_token={long_lived_resp.json().get('access_token', None)}", verify=verify_ssl)
 
         account_list = accounts_list_resp.json().get('data', None)
 
