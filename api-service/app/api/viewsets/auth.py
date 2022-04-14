@@ -25,7 +25,7 @@ class CreateAccountViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
   def create(self, request, *args, **kwargs):
     response = super().create(request, *args, **kwargs)
-    return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
+    return Response(["User created successfully"], status=status.HTTP_201_CREATED)
 
 
 class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, 
@@ -53,14 +53,11 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
     user.save()
     token.is_used = True
     token.save()
-    return Response({"detail": {
-      "user": mask_email(user.email), 
-      "message": "Account verified succesfully"
-    }}, status=status.HTTP_200_OK)
+    return Response(["Account verified succesfully"], status=status.HTTP_200_OK)
 
   def create(self, request, *args, **kwargs):
     response = super().create(request, *args, **kwargs)
-    return Response({"detail": "Token created successfully"}, status=status.HTTP_201_CREATED)
+    return Response(["Token created successfully"], status=status.HTTP_201_CREATED)
   
   def perform_create(self, serializer):
     return create_or_verify(serializer, 'verify')
@@ -84,16 +81,14 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.U
     if token.token_expiry < now() or token.is_used:
       raise ValidationError('Token is expired or already used')
     user = token.user
+    masked_email = ""#mask_email(user.email)
     if user.is_banned:
       raise ValidationError('User is banned')
-    return Response({"detail": {
-      "user": mask_email(user.email), 
-      "message": "Token verified succesfully"
-    }}, status=status.HTTP_200_OK)
+    return Response([f"Token verified succesfully for {masked_email}"], status=status.HTTP_200_OK)
 
   def create(self, request, *args, **kwargs):
     response = super().create(request, *args, **kwargs)
-    return Response({"detail": "Token created successfully"}, status=status.HTTP_201_CREATED)
+    return Response([f"Token created successfully"], status=status.HTTP_201_CREATED)
   
   def perform_create(self, serializer):
     return create_or_verify(serializer, 'forgot')
@@ -103,10 +98,8 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.U
     token = self.get_object()
     token.is_used = True
     token.save()
-    return Response({"detail": {
-      "user": mask_email(self.get_object().user.email), 
-      "message": "Password changed succesfully"
-    }}, status=status.HTTP_200_OK)
+    masked_email = mask_email(self.get_object().user.email)
+    return Response([f"Password changed succesfully for {masked_email}"], status=status.HTTP_200_OK)
 
   def perform_update(self, serializer):
     user = self.get_object().user
@@ -148,4 +141,4 @@ class EditProfileViewset(mixins.UpdateModelMixin, viewsets.GenericViewSet):
       user = self.get_object()
       user.set_password(password)
       user.save()
-    return Response({"detail": "Profile updated successfully"}, status=status.HTTP_200_OK)
+    return Response(["Profile updated successfully"], status=status.HTTP_200_OK)
