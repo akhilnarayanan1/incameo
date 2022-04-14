@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import mixins, viewsets, permissions, status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from api.functions import mask_email
@@ -41,14 +41,14 @@ class VerifyViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
     response = super().retrieve(request, *args, **kwargs)
     token = self.get_object()
     if token.token_type != 'verify':
-      raise APIException('Invalid Token')
+      raise ValidationError('Invalid Token')
     if token.token_expiry < now() or token.is_used:
-      raise APIException('Token is expired or already used')
+      raise ValidationError('Token is expired or already used')
     user = token.user
     if user.is_banned:
-      raise APIException('User is banned')
+      raise ValidationError('User is banned')
     if user.is_verified:
-      raise APIException('User already verified')
+      raise ValidationError('User already verified')
     user.is_verified = True
     user.save()
     token.is_used = True
@@ -80,12 +80,12 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.U
     response = super().retrieve(request, *args, **kwargs)
     token = self.get_object()
     if token.token_type != 'forgot':
-      raise APIException('Invalid Token')
+      raise ValidationError('Invalid Token')
     if token.token_expiry < now() or token.is_used:
-      raise APIException('Token is expired or already used')
+      raise ValidationError('Token is expired or already used')
     user = token.user
     if user.is_banned:
-      raise APIException('User is banned')
+      raise ValidationError('User is banned')
     return Response({"detail": {
       "user": mask_email(user.email), 
       "message": "Token verified succesfully"
@@ -117,21 +117,21 @@ class ForgotViewset(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.U
 
 def create_or_verify(serializer, token_type):
   if token_type != 'verify' and token_type != 'forgot':
-    raise APIException('Invalid token type')
+    raise ValidationError('Invalid token type')
   user=serializer.validated_data['user']
   try:
     user = User.objects.get(email=user)
     if token_type == 'verify' and user.is_verified:
-      raise APIException('User already verified')
+      raise ValidationError('User already verified')
     available_token = AllVerifyOrForgotToken.objects.get(
       user=user, 
       token_type=token_type, 
       token_expiry__gt=now(),
       is_used=False
     )
-    raise APIException('Token already exists')
+    raise ValidationError('Token already exists')
   except User.DoesNotExist:
-    raise APIException('User doesn\'t exist')
+    raise ValidationError('User doesn\'t exist')
   except AllVerifyOrForgotToken.DoesNotExist:
     serializer.save(user=user, token_type=token_type)
 
