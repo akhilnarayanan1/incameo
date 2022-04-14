@@ -52,7 +52,7 @@ class AuthenticationTests(APITestCase):
         """
         Test verification token API should throw 401
         if user not loggedin, 201 if user recognized
-        500 again if token is already present
+        400 again if token is already present
         """
         data = {'user': self.email}
         response1 = self.client.post('/api/account/verify/', data, format='json')
@@ -61,22 +61,22 @@ class AuthenticationTests(APITestCase):
         response2 = self.client.post('/api/account/verify/', data, format='json')
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
         response3 = self.client.post('/api/account/verify/', data, format='json')
-        self.assertEqual(response3.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response3.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_forgot_token(self):
         """
-        Test forgot token API should throw 500
+        Test forgot token API should throw 400
         if user not present(no login needed), 201 if user recognized
-        500 again if token is already present
+        400 again if token is already present
         """
         data1 = {'user': fake.email()}
         data2 = {'user': self.email}
         response1 = self.client.post('/api/account/forgot/', data1, format='json')
         response2 = self.client.post('/api/account/forgot/', data2, format='json')
         response3 = self.client.post('/api/account/forgot/', data2, format='json')
-        self.assertEqual(response1.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response1.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response3.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response3.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_validate_token(self):
         """
