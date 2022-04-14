@@ -1,5 +1,6 @@
 <template>
 <div>
-  <button class="btn btn-primary">Button</button>
+  <NuxtLink to="/login" class="btn btn-active" role="button" aria-pressed="true">Login</NuxtLink> 
+  <NuxtLink to="/signup" class="btn btn-primary btn-active" role="button" aria-pressed="true">Signup</NuxtLink> 
 </div>
 </template>
