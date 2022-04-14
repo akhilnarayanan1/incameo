@@ -4,3 +4,4 @@ djangorestframework-simplejwt==5.1.0
 Faker==13.3.4
 user-agents==2.2.0
 requests==2.27.1
+django-cors-headers==3.11.0
