@@ -6,10 +6,12 @@
     "start": "node .output/server/index.mjs"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.181",
+    "daisyui": "^2.13.6",
     "nuxt3": "latest",
     "tailwindcss": "^3.0.24"
   },
   "dependencies": {
-    "daisyui": "^2.13.6"
+    "lodash": "^4.17.21"
   }
 }
