@@ -155,7 +155,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-    )
+    ),
+    'EXCEPTION_HANDLER': 'api.custom_response.CustomExceptionHandler'
 }
 
 SIMPLE_JWT = {
@@ -183,3 +184,5 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000",] if DEBUG else []
+
+NON_FIELD_ERRORS_KEY = 'non_field_errors'
