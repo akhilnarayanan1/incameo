@@ -1,5 +1,4 @@
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status, mixins, viewsets
 from api.serializers import FacebookConnectSerializer
@@ -8,6 +7,7 @@ from api.models import FacebookAccount
 from django.utils.timezone import now, timedelta, datetime
 import time
 import requests
+from api.custom_response import MessageResponse
 
 
 class ProfileMetricsViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -26,7 +26,7 @@ class ProfileMetricsViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
             f"since={epoch_time - 86400*7}&until={epoch_time}&access_token={account.access_token}", 
             verify=False)
 
-        return Response(response.json(), status=status.HTTP_200_OK)
+        return MessageResponse(response.json(), status=status.HTTP_200_OK)
 
 class ClickMetricsViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     lookup_field = 'business_id'
@@ -44,7 +44,7 @@ class ClickMetricsViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
             f"since={epoch_time - 86400*7}&until={epoch_time}&access_token={account.access_token}", 
             verify=False)
 
-        return Response(response.json(), status=status.HTTP_200_OK)
+        return MessageResponse(response.json(), status=status.HTTP_200_OK)
 
 class AudienceMetricsViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     lookup_field = 'business_id'
@@ -62,4 +62,4 @@ class AudienceMetricsViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet)
             f"access_token={account.access_token}", 
             verify=False)
 
-        return Response(response.json(), status=status.HTTP_200_OK)
+        return MessageResponse(response.json(), status=status.HTTP_200_OK)
